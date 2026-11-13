@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+
+<html lang="es" class="dark">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <title>DAURO 50 · Gestión de Cuadrante y Permisos</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    body {
+
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      background-color: #0b0f19;
+
+      color: #f1f5f9;
+
+      -webkit-tap-highlight-color: transparent;
+
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  </style>
+
+</head>
+
+<body class="min-h-screen bg-[#0b0f19] text-slate-100 select-none pb-10">
+
+
+
+  <!-- PANTALLA DE LOGIN -->
+
+  <div id="loginScreen" class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-sm bg-[#131926] border border-slate-800 rounded-2xl p-6 shadow-2xl">
+
+      <div class="flex items-center gap-3 mb-6">
+
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-extrabold text-lg">
+
+          D50
+
+        </div>
+
+        <div>
+
+          <div class="flex items-center gap-2">
+
+            <h1 class="text-xl font-extrabold tracking-tight text-white">DAURO 50</h1>
+
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">PL GRANADA</span>
+
+          </div>
+
+          <p class="text-xs text-slate-400">Acceso al Cuadrante y Cupos</p>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="space-y-4">
+
+        <div>
+
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Componente de Unidad</label>
+
+          <select id="loginUserSelect" class="w-full bg-[#0b0f19] border border-slate-700 rounded-xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-amber-500">
+
+            <option value="4699">Oficial 4699</option>
+
+            <option value="5595">Agente 5595</option>
+
+            <option value="14827">Agente 14827</option>
+
+            <option value="15581">Agente 15581</option>
+
+            <option value="15739">Agente 15739</option>
+
+            <option value="16377">Agente 16377</option>
+
+            <option value="16770">Agente 16770</option>
+
+          </select>
+
+        </div>
+
+
+
+        <div>
+
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">PIN de Acceso</label>
+
+          <input id="loginPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••"
+
+            class="w-full bg-[#0b0f19] border border-slate-700 rounded-xl px-3.5 py-3 text-center text-lg tracking-[0.5em] font-bold text-white focus:outline-none focus:border-amber-500" />
+
+          <p id="loginError" class="hidden text-xs text-rose-400 mt-1.5 text-center">PIN incorrecto.</p>
+
+          <p class="text-[10px] text-slate-500 mt-1 text-center">Por defecto PIN inicial: 1234 (hasta que se personalice)</p>
+
+        </div>
+
+
+
+        <button onclick="handleLogin()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/10">
+
+          Entrar al Sistema
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- APLICACIÓN PRINCIPAL -->
+
+  <div id="mainApp" class="hidden max-w-4xl mx-auto px-3 sm:px-6 pt-3">
+
+
+
+    <!-- CABECERA -->
+
+    <header class="sticky top-0 z-30 bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-800/80 py-3 mb-4 flex items-center justify-between gap-2">
+
+      <div class="flex items-center gap-2.5 min-w-0">
+
+        <div class="w-10 h-10 shrink-0 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-extrabold text-sm">
+
+          D50
+
+        </div>
+
+        <div class="min-w-0">
+
+          <div class="flex items-center gap-1.5">
+
+            <span class="font-extrabold text-base sm:text-lg tracking-tight text-white truncate">DAURO 50</span>
+
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">PL GRANADA</span>
+
+          </div>
+
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+
+            <span id="syncIndicator" class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+
+            <span id="activeUserLabel" class="truncate">Conectado</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="flex items-center gap-2 shrink-0">
+
+        <button onclick="openRequestModal()" class="bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs sm:text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition shadow-md shadow-amber-500/10">
+
+          <span>+ Solicitar</span>
+
+        </button>
+
+        <button onclick="openPinModal()" title="Cambiar mi PIN" class="p-2 rounded-xl bg-[#131926] border border-slate-800 text-slate-300 hover:text-white transition">
+
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+
+        </button>
+
+        <button onclick="handleLogout()" title="Cerrar sesión" class="p-2 rounded-xl bg-[#131926] border border-slate-800 text-slate-400 hover:text-white transition">
+
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/></svg>
+
+        </button>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- NAVEGACIÓN DE MES -->
+
+    <div class="flex items-center justify-between bg-[#131926] border border-slate-800 rounded-2xl p-2.5 mb-4">
+
+      <button onclick="changeMonth(-1)" class="p-2 rounded-xl bg-[#0b0f19] border border-slate-800 hover:border-slate-700 text-slate-300 active:scale-95 transition">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+
+      </button>
+
+      <div class="text-center">
+
+        <h2 id="currentMonthTitle" class="text-base sm:text-lg font-extrabold text-white capitalize">Noviembre 2026</h2>
+
+        <p class="text-[11px] text-slate-400">Rotación 3x3 · Cupo Ordinario 40% (3) · Especial 20% (2)</p>
+
+      </div>
+
+      <button onclick="changeMonth(1)" class="p-2 rounded-xl bg-[#0b0f19] border border-slate-800 hover:border-slate-700 text-slate-300 active:scale-95 transition">
+
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+
+      </button>
+
+    </div>
+
+
+
+    <!-- CALENDARIO DE ESTADO DEL CUPO DIARIO -->
+
+    <section class="bg-[#131926] border border-slate-800 rounded-2xl p-3 sm:p-5 mb-5">
+
+      <div class="mb-3">
+
+        <h3 class="text-sm sm:text-base font-bold text-white">Estado del Cupo Diario del Mes</h3>
+
+        <p class="text-xs text-slate-400">Pulsa sobre cualquier día para ver los agentes apuntados y la hora de solicitud</p>
+
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-300">
+
+          <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded-full bg-emerald-400 inline-block"></span> Disponible</span>
+
+          <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded-full bg-rose-500 inline-block"></span> Completo</span>
+
+          <span class="flex items-center gap-1.5"><span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[10px]">20%</span> Restringido</span>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 mb-1.5">
+
+        <div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>
+
+      </div>
+
+
+
+      <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+
+    </section>
+
+
+
+    <!-- CUADRANTE COMPLETO DE LA UNIDAD -->
+
+    <section class="bg-[#131926] border border-slate-800 rounded-2xl p-3 sm:p-5 mb-5">
+
+      <div class="mb-3">
+
+        <h3 class="text-sm sm:text-base font-bold text-white">Cuadrante Completo Dauro 50</h3>
+
+        <p class="text-xs text-slate-400">Desliza horizontalmente para revisar los turnos y permisos del mes</p>
+
+      </div>
+
+      <div class="overflow-x-auto no-scrollbar border border-slate-800/80 rounded-xl">
+
+        <table id="rosterTable" class="w-full text-left border-collapse text-xs"></table>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- MIS PERMISOS REGISTRADOS -->
+
+    <section class="bg-[#131926] border border-slate-800 rounded-2xl p-3 sm:p-5">
+
+      <div class="flex items-center justify-between mb-3">
+
+        <div>
+
+          <h3 class="text-sm sm:text-base font-bold text-white">Mis Permisos Registrados</h3>
+
+          <p class="text-xs text-slate-400">Solicitudes activas de tu sesión actual</p>
+
+        </div>
+
+        <span id="myRequestsCount" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">0 registros</span>
+
+      </div>
+
+
+
+      <div class="overflow-x-auto">
+
+        <table class="w-full text-left border-collapse text-xs">
+
+          <thead>
+
+            <tr class="border-b border-slate-800 text-[10px] uppercase tracking-wider text-slate-400">
+
+              <th class="py-2.5 px-2">Permiso</th>
+
+              <th class="py-2.5 px-2">Fecha Disfrute</th>
+
+              <th class="py-2.5 px-2">Solicitado el</th>
+
+              <th class="py-2.5 px-2">Cupo</th>
+
+              <th class="py-2.5 px-2 text-right">Acción</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="myRequestsBody" class="divide-y divide-slate-800/60"></tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+
+  </div>
+
+
+
+  <!-- MODAL CAMBIO DE PIN -->
+
+  <div id="pinModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm bg-[#131926] border border-slate-700 rounded-2xl p-5 shadow-2xl">
+
+      <div class="flex items-center justify-between mb-4">
+
+        <h3 class="text-base font-bold text-white">Cambiar mi PIN de Acceso</h3>
+
+        <button onclick="closePinModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+
+      </div>
+
+
+
+      <div class="space-y-4">
+
+        <div>
+
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">PIN Actual</label>
+
+          <input id="currentPinField" type="password" inputmode="numeric" maxlength="4" placeholder="••••"
+
+            class="w-full bg-[#0b0f19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-center text-lg tracking-[0.5em] font-bold text-white focus:outline-none focus:border-amber-500" />
+
+        </div>
+
+
+
+        <div>
+
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Nuevo PIN (4 dígitos)</label>
+
+          <input id="newPinField" type="password" inputmode="numeric" maxlength="4" placeholder="••••"
+
+            class="w-full bg-[#0b0f19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-center text-lg tracking-[0.5em] font-bold text-white focus:outline-none focus:border-amber-500" />
+
+        </div>
+
+
+
+        <p id="pinModalMsg" class="hidden text-xs text-center font-bold"></p>
+
+
+
+        <div class="flex gap-2 pt-2">
+
+          <button onclick="closePinModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm transition">Cancelar</button>
+
+          <button onclick="saveNewPin()" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition">Guardar PIN</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- MODAL NUEVA SOLICITUD -->
+
+  <div id="requestModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-[#131926] border border-slate-700 rounded-2xl p-5 shadow-2xl">
+
+      <div class="flex items-center justify-between mb-4">
+
+        <h3 class="text-base font-bold text-white">Nueva Solicitud de Permiso</h3>
+
+        <button onclick="closeRequestModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+
+      </div>
+
+
+
+      <div class="space-y-4">
+
+        <div>
+
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Solicitante</label>
+
+          <div id="modalUserDisplay" class="bg-[#0b0f19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm font-bold text-amber-400"></div>
+
+        </div>
+
+
+
+        <div>
+
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tipo de Permiso</label>
+
+          <select id="requestTypeSelect" class="w-full bg-[#0b0f19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+
+            <option value="AP">Asuntos Particulares (AP)</option>
+
+            <option value="V">Vacaciones (V)</option>
+
+            <option value="B">Baja (B)</option>
+
+            <option value="BVD">Bolsa Voluntaria Disponibilidad (BVD)</option>
+
+            <option value="LIC">Licencia (LIC)</option>
+
+          </select>
+
+        </div>
+
+
+
+        <div>
+
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Fecha del Permiso</label>
+
+          <input id="requestDateInput" type="date" onchange="updateModalDatePreview()"
+
+            class="w-full bg-[#0b0f19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" />
+
+        </div>
+
+
+
+        <div id="modalQuotaFeedback" class="p-3 rounded-xl bg-[#0b0f19] border border-slate-800 text-xs"></div>
+
+
+
+        <div class="flex gap-2 pt-2">
+
+          <button onclick="closeRequestModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm transition">Cancelar</button>
+
+          <button id="submitRequestBtn" onclick="submitPermission()" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition">Confirmar</button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- MODAL DETALLE DEL DÍA -->
+
+  <div id="dayDetailModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-[#131926] border border-slate-700 rounded-2xl p-5 shadow-2xl">
+
+      <div class="flex items-start justify-between mb-3">
+
+        <div>
+
+          <div class="flex items-center gap-2 mb-1">
+
+            <span id="detailShiftBadge" class="text-[10px] font-extrabold px-2 py-0.5 rounded uppercase"></span>
+
+            <span id="detailQuotaTypeBadge" class="text-[10px] font-bold px-2 py-0.5 rounded"></span>
+
+          </div>
+
+          <h3 id="detailDateTitle" class="text-base sm:text-lg font-extrabold text-white"></h3>
+
+        </div>
+
+        <button onclick="closeDayDetailModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+
+      </div>
+
+
+
+      <div class="bg-[#0b0f19] border border-slate-800 rounded-xl p-3.5 mb-4">
+
+        <div class="flex items-center justify-between text-xs mb-1.5">
+
+          <span class="text-slate-400">Ocupación Agentes (Computables):</span>
+
+          <span id="detailOccupancyText" class="font-extrabold"></span>
+
+        </div>
+
+        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+
+          <div id="detailOccupancyBar" class="h-full transition-all"></div>
+
+        </div>
+
+        <p id="detailStatusSubtext" class="text-[11px] text-slate-400 mt-1.5"></p>
+
+      </div>
+
+
+
+      <div class="mb-4">
+
+        <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+
+          <span>Componentes con permiso este día</span>
+
+          <span id="detailTotalCount">0 anotados</span>
+
+        </div>
+
+        <div id="detailAgentsList" class="space-y-2 max-h-56 overflow-y-auto"></div>
+
+      </div>
+
+
+
+      <div class="flex gap-2">
+
+        <button onclick="closeDayDetailModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm transition">Cerrar</button>
+
+        <button id="detailQuickRequestBtn" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition">+ Pedir este día</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- FIREBASE SDK & LÓGICA DE LA APP -->
+
+  <script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import { getFirestore, collection, doc, setDoc, deleteDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+
+    // =========================================================================
+
+    // PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE:
+
+    // =========================================================================
+
+    const firebaseConfig = {
+
+      apiKey: "TU_API_KEY_AQUI",
+
+      authDomain: "TU_PROYECTO.firebaseapp.com",
+
+      projectId: "TU_PROJECT_ID",
+
+      storageBucket: "TU_PROYECTO.appspot.com",
+
+      messagingSenderId: "TU_SENDER_ID",
+
+      appId: "TU_APP_ID"
+
+    };
+
+
+
+    const isFirebaseConfigured = firebaseConfig.apiKey !== "TU_API_KEY_AQUI";
+
+    let db = null;
+
+    if (isFirebaseConfigured) {
+
+      const app = initializeApp(firebaseConfig);
+
+      db = getFirestore(app);
+
+    }
+
+
+
+    const UNIT_MEMBERS = [
+
+      { id: "4699", role: "Oficial", name: "Oficial 4699", computable: false },
+
+      { id: "5595", role: "Agente", name: "Agente 5595", computable: true },
+
+      { id: "14827", role: "Agente", name: "Agente 14827", computable: true },
+
+      { id: "15581", role: "Agente", name: "Agente 15581", computable: true },
+
+      { id: "15739", role: "Agente", name: "Agente 15739", computable: true },
+
+      { id: "16377", role: "Agente", name: "Agente 16377", computable: true },
+
+      { id: "16770", role: "Agente", name: "Agente 16770", computable: true }
+
+    ];
+
+
+
+    const SHIFT_CYCLE = ["M", "T", "N", "L", "L", "L"];
+
+    const ANCHOR_DATE = new Date(2026, 10, 10);
+
+
+
+    let currentUser = null;
+
+    let viewYear = 2026;
+
+    let viewMonth = 10;
+
+    let permissions = [];
+
+
+
+    // OBTENER O GUARDAR PIN EN FIREBASE / LOCALSTORAGE
+
+    async function getStoredPin(userId) {
+
+      if (db) {
+
+        try {
+
+          const pinDoc = await getDoc(doc(db, "dauro50_pins", userId));
+
+          if (pinDoc.exists()) return pinDoc.data().pin;
+
+        } catch (e) { console.error(e); }
+
+      }
+
+      return localStorage.getItem(`pin_${userId}`) || "1234";
+
+    }
+
+
+
+    async function savePinToStorage(userId, newPin) {
+
+      if (db) {
+
+        await setDoc(doc(db, "dauro50_pins", userId), { pin: newPin });
+
+      }
+
+      localStorage.setItem(`pin_${userId}`, newPin);
+
+    }
+
+
+
+    function initDataSync() {
+
+      const indicator = document.getElementById("syncIndicator");
+
+      if (db) {
+
+        const colRef = collection(db, "dauro50_permisos");
+
+        onSnapshot(colRef, (snapshot) => {
+
+          permissions = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+
+          indicator.className = "inline-block w-2 h-2 rounded-full bg-emerald-400";
+
+          renderAll();
+
+        }, (err) => {
+
+          console.error("Error Firestore:", err);
+
+          indicator.className = "inline-block w-2 h-2 rounded-full bg-rose-500";
+
+        });
+
+      } else {
+
+        permissions = JSON.parse(localStorage.getItem("dauro50_permissions_v3") || "[]");
+
+        indicator.className = "inline-block w-2 h-2 rounded-full bg-amber-400";
+
+        renderAll();
+
+      }
+
+    }
+
+
+
+    function getShiftForDate(dateObj) {
+
+      const utc1 = Date.UTC(ANCHOR_DATE.getFullYear(), ANCHOR_DATE.getMonth(), ANCHOR_DATE.getDate());
+
+      const utc2 = Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+      const diffDays = Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+
+      const idx = ((diffDays % 6) + 6) % 6;
+
+      return SHIFT_CYCLE[idx];
+
+    }
+
+
+
+    function getEasterDate(year) {
+
+      const f = Math.floor, G = year % 19, C = f(year / 100),
+
+            H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30,
+
+            I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11)),
+
+            J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7,
+
+            L = I - J, month = 3 + f((L + 40) / 44), day = L + 28 - 31 * f(month / 4);
+
+      return new Date(year, month - 1, day);
+
+    }
+
+
+
+    function isRestrictedDate(dateObj) {
+
+      const y = dateObj.getFullYear();
+
+      const m = dateObj.getMonth() + 1;
+
+      const d = dateObj.getDate();
+
+
+
+      if ((m === 12 && d >= 22) || (m === 1 && d <= 6)) return true;
+
+      if (m === 5 && d >= 1 && d <= 3) return true;
+
+      if (m === 12 && d >= 4 && d <= 8) return true;
+
+
+
+      const easter = getEasterDate(y);
+
+      const palmSunday = new Date(easter); palmSunday.setDate(easter.getDate() - 7);
+
+      const corpusThursday = new Date(easter); corpusThursday.setDate(easter.getDate() + 60);
+
+      const corpusSunday = new Date(easter); corpusSunday.setDate(easter.getDate() + 63);
+
+
+
+      const t = new Date(y, m - 1, d).getTime();
+
+      if (t >= palmSunday.getTime() && t <= easter.getTime()) return true;
+
+      if (t >= corpusThursday.getTime() && t <= corpusSunday.getTime()) return true;
+
+
+
+      return false;
+
+    }
+
+
+
+    function formatDateISO(dateObj) {
+
+      const y = dateObj.getFullYear();
+
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+
+      const d = String(dateObj.getDate()).padStart(2, "0");
+
+      return `${y}-${m}-${d}`;
+
+    }
+
+
+
+    function formatDisplayDate(isoStr) {
+
+      const [y, m, d] = isoStr.split("-");
+
+      return `${d}/${m}/${y}`;
+
+    }
+
+
+
+    function getCurrentTimestamp() {
+
+      const now = new Date();
+
+      const dd = String(now.getDate()).padStart(2, "0");
+
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+
+      const yyyy = now.getFullYear();
+
+      const hh = String(now.getHours()).padStart(2, "0");
+
+      const min = String(now.getMinutes()).padStart(2, "0");
+
+      return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+
+    }
+
+
+
+    // LOGIN / LOGOUT CON PIN DINÁMICO
+
+    window.handleLogin = async () => {
+
+      const userId = document.getElementById("loginUserSelect").value;
+
+      const pinInput = document.getElementById("loginPinInput").value;
+
+      const correctPin = await getStoredPin(userId);
+
+
+
+      if (pinInput !== correctPin) {
+
+        const errEl = document.getElementById("loginError");
+
+        errEl.textContent = "PIN incorrecto.";
+
+        errEl.classList.remove("hidden");
+
+        return;
+
+      }
+
+
+
+      document.getElementById("loginError").classList.add("hidden");
+
+      currentUser = UNIT_MEMBERS.find(u => u.id === userId);
+
+      document.getElementById("activeUserLabel").textContent = `${currentUser.name} · ${isFirebaseConfigured ? "En línea" : "Modo Local"}`;
+
+      document.getElementById("loginScreen").classList.add("hidden");
+
+      document.getElementById("mainApp").classList.remove("hidden");
+
+      document.getElementById("loginPinInput").value = "";
+
+      initDataSync();
+
+    };
+
+
+
+    window.handleLogout = () => {
+
+      currentUser = null;
+
+      document.getElementById("mainApp").classList.add("hidden");
+
+      document.getElementById("loginScreen").classList.remove("hidden");
+
+    };
+
+
+
+    // CAMBIO DE PIN
+
+    window.openPinModal = () => {
+
+      document.getElementById("currentPinField").value = "";
+
+      document.getElementById("newPinField").value = "";
+
+      document.getElementById("pinModalMsg").classList.add("hidden");
+
+      document.getElementById("pinModal").classList.remove("hidden");
+
+    };
+
+
+
+    window.closePinModal = () => {
+
+      document.getElementById("pinModal").classList.add("hidden");
+
+    };
+
+
+
+    window.saveNewPin = async () => {
+
+      const currentPinInput = document.getElementById("currentPinField").value;
+
+      const newPinInput = document.getElementById("newPinField").value;
+
+      const msgEl = document.getElementById("pinModalMsg");
+
+
+
+      const correctPin = await getStoredPin(currentUser.id);
+
+
+
+      if (currentPinInput !== correctPin) {
+
+        msgEl.textContent = "El PIN actual no es correcto.";
+
+        msgEl.className = "text-xs text-center font-bold text-rose-400";
+
+        msgEl.classList.remove("hidden");
+
+        return;
+
+      }
+
+
+
+      if (!/^\d{4}$/.test(newPinInput)) {
+
+        msgEl.textContent = "El nuevo PIN debe tener exactamente 4 dígitos numéricos.";
+
+        msgEl.className = "text-xs text-center font-bold text-rose-400";
+
+        msgEl.classList.remove("hidden");
+
+        return;
+
+      }
+
+
+
+      await savePinToStorage(currentUser.id, newPinInput);
+
+      msgEl.textContent = "¡PIN actualizado correctamente!";
+
+      msgEl.className = "text-xs text-center font-bold text-emerald-400";
+
+      msgEl.classList.remove("hidden");
+
+
+
+      setTimeout(() => { closePinModal(); }, 1500);
+
+    };
+
+
+
+    window.changeMonth = (delta) => {
+
+      viewMonth += delta;
+
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+
+      renderAll();
+
+    };
+
+
+
+    function renderAll() {
+
+      if (!currentUser) return;
+
+      renderCalendar();
+
+      renderRosterTable();
+
+      renderMyRequests();
+
+    }
+
+
+
+    function renderCalendar() {
+
+      const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+      document.getElementById("currentMonthTitle").textContent = `${monthNames[viewMonth]} ${viewYear}`;
+
+
+
+      const grid = document.getElementById("calendarGrid");
+
+      grid.innerHTML = "";
+
+
+
+      const firstDay = new Date(viewYear, viewMonth, 1);
+
+      const startWeekday = (firstDay.getDay() + 6) % 7;
+
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+
+
+      for (let i = 0; i < startWeekday; i++) {
+
+        grid.innerHTML += `<div class="h-20 rounded-xl bg-[#0b0f19]/40"></div>`;
+
+      }
+
+
+
+      const shiftBadgeColors = {
+
+        M: "bg-sky-500/20 text-sky-400 border-sky-500/30",
+
+        T: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+
+        N: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+
+        L: "bg-slate-800 text-slate-400 border-slate-700"
+
+      };
+
+
+
+      for (let d = 1; d <= daysInMonth; d++) {
+
+        const dateObj = new Date(viewYear, viewMonth, d);
+
+        const iso = formatDateISO(dateObj);
+
+        const shift = getShiftForDate(dateObj);
+
+        const restricted = isRestrictedDate(dateObj);
+
+        const maxQuota = restricted ? 2 : 3;
+
+
+
+        const dayPerms = permissions.filter(p => p.date === iso);
+
+        const computableCount = dayPerms.filter(p => {
+
+          const m = UNIT_MEMBERS.find(u => u.id === p.userId);
+
+          return m && m.computable;
+
+        }).length;
+
+
+
+        const isFull = computableCount >= maxQuota;
+
+        const isFreeDay = shift === "L";
+
+
+
+        const borderClass = restricted
+
+          ? "border-amber-500/40 bg-amber-500/[0.03]"
+
+          : "border-slate-800 bg-[#0b0f19]/80";
+
+
+
+        const statusBarHtml = isFreeDay
+
+          ? `<div class="h-1 w-full mt-1"></div>`
+
+          : `<div class="h-1 w-full rounded-full mt-1 ${isFull ? "bg-rose-500" : "bg-emerald-400"}"></div>`;
+
+
+
+        grid.innerHTML += `
+
+          <button onclick="openDayDetail('${iso}')"
+
+            class="h-20 rounded-xl border ${borderClass} hover:border-slate-600 active:scale-95 transition px-1 py-1.5 flex flex-col justify-between items-center overflow-hidden">
+
+            <div class="w-full flex items-center justify-between gap-0.5">
+
+              <span class="text-[11px] sm:text-xs font-extrabold text-white leading-none">${d}</span>
+
+              <span class="text-[9px] sm:text-[10px] font-extrabold px-1 py-0.5 rounded border leading-none ${shiftBadgeColors[shift]}">${shift}</span>
+
+            </div>
+
+            <div class="text-center leading-tight">
+
+              <div class="text-[11px] font-bold ${isFull && !isFreeDay ? "text-rose-400" : "text-slate-200"}">${computableCount}/${maxQuota}</div>
+
+              <div class="text-[8px] font-semibold ${restricted ? "text-amber-400" : "text-slate-500"}">${restricted ? "20% RESTR." : "40%"}</div>
+
+            </div>
+
+            ${statusBarHtml}
+
+          </button>
+
+        `;
+
+      }
+
+    }
+
+
+
+    function renderRosterTable() {
+
+      const table = document.getElementById("rosterTable");
+
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+
+
+      let headHtml = `<thead><tr class="bg-[#0b0f19] border-b border-slate-800 text-[10px] text-slate-400">
+
+        <th class="sticky left-0 z-10 bg-[#0b0f19] py-2.5 px-2.5 font-bold">COMPONENTE</th>`;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+
+        headHtml += `<th class="py-2 px-1.5 text-center font-bold min-w-[28px]">${d}</th>`;
+
+      }
+
+      headHtml += `</tr></thead>`;
+
+
+
+      const shiftColors = {
+
+        M: "text-sky-400 bg-sky-500/10",
+
+        T: "text-amber-400 bg-amber-500/10",
+
+        N: "text-indigo-400 bg-indigo-500/10",
+
+        L: "text-slate-500"
+
+      };
+
+
+
+      let bodyHtml = `<tbody class="divide-y divide-slate-800/60">`;
+
+      for (const member of UNIT_MEMBERS) {
+
+        bodyHtml += `<tr>
+
+          <td class="sticky left-0 z-10 bg-[#131926] py-2 px-2.5 whitespace-nowrap border-r border-slate-800/80">
+
+            <span class="font-bold text-amber-400 mr-1">${member.id}</span>
+
+            <span class="text-slate-300 text-[11px]">${member.role}</span>
+
+          </td>`;
+
+
+
+        for (let d = 1; d <= daysInMonth; d++) {
+
+          const dateObj = new Date(viewYear, viewMonth, d);
+
+          const iso = formatDateISO(dateObj);
+
+          const shift = getShiftForDate(dateObj);
+
+          const perm = permissions.find(p => p.date === iso && p.userId === member.id);
+
+
+
+          if (perm) {
+
+            bodyHtml += `<td class="p-1 text-center">
+
+              <span class="inline-block w-full py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-extrabold text-[10px]">${perm.type}</span>
+
+            </td>`;
+
+          } else {
+
+            bodyHtml += `<td class="p-1 text-center">
+
+              <span class="inline-block w-full py-0.5 rounded font-bold text-[10px] ${shiftColors[shift]}">${shift}</span>
+
+            </td>`;
+
+          }
+
+        }
+
+        bodyHtml += `</tr>`;
+
+      }
+
+      bodyHtml += `</tbody>`;
+
+      table.innerHTML = headHtml + bodyHtml;
+
+    }
+
+
+
+    function renderMyRequests() {
+
+      const tbody = document.getElementById("myRequestsBody");
+
+      const myPerms = permissions
+
+        .filter(p => p.userId === currentUser.id)
+
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+
+
+      document.getElementById("myRequestsCount").textContent = `${myPerms.length} ${myPerms.length === 1 ? "registro" : "registros"}`;
+
+
+
+      if (myPerms.length === 0) {
+
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">No tienes permisos registrados en tu sesión.</td></tr>`;
+
+        return;
+
+      }
+
+
+
+      tbody.innerHTML = myPerms.map(p => {
+
+        const [y, m, d] = p.date.split("-");
+
+        const restricted = isRestrictedDate(new Date(Number(y), Number(m) - 1, Number(d)));
+
+        return `
+
+          <tr>
+
+            <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">${p.type}</span></td>
+
+            <td class="py-2.5 px-2 font-semibold text-white whitespace-nowrap">${formatDisplayDate(p.date)}</td>
+
+            <td class="py-2.5 px-2 text-slate-300 whitespace-nowrap">${p.requestedAt || "-"}</td>
+
+            <td class="py-2.5 px-2 text-slate-400 whitespace-nowrap">${restricted ? "20% Especial" : "40% Ordinario"}</td>
+
+            <td class="py-2.5 px-2 text-right">
+
+              <button onclick="deletePermission('${p.docId}')" class="text-rose-400 hover:text-rose-300 font-semibold px-2 py-1 rounded bg-rose-500/10">Anular</button>
+
+            </td>
+
+          </tr>
+
+        `;
+
+      }).join("");
+
+    }
+
+
+
+    window.openRequestModal = (preselectedIso = null) => {
+
+      document.getElementById("modalUserDisplay").textContent = currentUser.name;
+
+      const defaultIso = preselectedIso || formatDateISO(new Date(viewYear, viewMonth, 10));
+
+      document.getElementById("requestDateInput").value = defaultIso;
+
+      updateModalDatePreview();
+
+      document.getElementById("requestModal").classList.remove("hidden");
+
+    };
+
+
+
+    window.closeRequestModal = () => {
+
+      document.getElementById("requestModal").classList.add("hidden");
+
+    };
+
+
+
+    window.updateModalDatePreview = () => {
+
+      const iso = document.getElementById("requestDateInput").value;
+
+      const feedback = document.getElementById("modalQuotaFeedback");
+
+      const btn = document.getElementById("submitRequestBtn");
+
+      if (!iso) return;
+
+
+
+      const [y, m, d] = iso.split("-").map(Number);
+
+      const dateObj = new Date(y, m - 1, d);
+
+      const shift = getShiftForDate(dateObj);
+
+      const restricted = isRestrictedDate(dateObj);
+
+      const maxQuota = restricted ? 2 : 3;
+
+
+
+      const dayPerms = permissions.filter(p => p.date === iso);
+
+      const alreadyRequested = dayPerms.some(p => p.userId === currentUser.id);
+
+      const computableCount = dayPerms.filter(p => {
+
+        const u = UNIT_MEMBERS.find(m => m.id === p.userId);
+
+        return u && u.computable;
+
+      }).length;
+
+
+
+      if (alreadyRequested) {
+
+        feedback.innerHTML = `<span class="text-amber-400 font-bold">Ya tienes un permiso anotado para este día.</span>`;
+
+        btn.disabled = true;
+
+        btn.classList.add("opacity-40", "cursor-not-allowed");
+
+        return;
+
+      }
+
+
+
+      if (currentUser.computable && computableCount >= maxQuota) {
+
+        feedback.innerHTML = `<span class="text-rose-400 font-bold">Cupo completo (${computableCount}/${maxQuota}) · Turno ${shift}.</span>`;
+
+        btn.disabled = true;
+
+        btn.classList.add("opacity-40", "cursor-not-allowed");
+
+        return;
+
+      }
+
+
+
+      btn.disabled = false;
+
+      btn.classList.remove("opacity-40", "cursor-not-allowed");
+
+      feedback.innerHTML = `
+
+        <div class="text-emerald-400 font-bold mb-0.5">✓ Cupo disponible (${computableCount}/${maxQuota}) · Turno ${shift}</div>
+
+        <div class="text-slate-400">${restricted ? "Fecha sujeta a cupo restringido del 20%." : "Fecha sujeta a cupo ordinario del 40%."}</div>
+
+      `;
+
+    };
+
+
+
+    window.submitPermission = async () => {
+
+      const iso = document.getElementById("requestDateInput").value;
+
+      const type = document.getElementById("requestTypeSelect").value;
+
+      if (!iso || !currentUser) return;
+
+
+
+      const docId = `${iso}_${currentUser.id}`;
+
+      const record = {
+
+        docId,
+
+        date: iso,
+
+        userId: currentUser.id,
+
+        type,
+
+        requestedAt: getCurrentTimestamp()
+
+      };
+
+
+
+      if (db) {
+
+        await setDoc(doc(db, "dauro50_permisos", docId), record);
+
+      } else {
+
+        permissions.push(record);
+
+        localStorage.setItem("dauro50_permissions_v3", JSON.stringify(permissions));
+
+        renderAll();
+
+      }
+
+      closeRequestModal();
+
+    };
+
+
+
+    window.deletePermission = async (docId) => {
+
+      if (db) {
+
+        await deleteDoc(doc(db, "dauro50_permisos", docId));
+
+      } else {
+
+        permissions = permissions.filter(p => p.docId !== docId);
+
+        localStorage.setItem("dauro50_permissions_v3", JSON.stringify(permissions));
+
+        renderAll();
+
+      }
+
+    };
+
+
+
+    window.openDayDetail = (iso) => {
+
+      const [y, m, d] = iso.split("-").map(Number);
+
+      const dateObj = new Date(y, m - 1, d);
+
+      const shift = getShiftForDate(dateObj);
+
+      const restricted = isRestrictedDate(dateObj);
+
+      const maxQuota = restricted ? 2 : 3;
+
+
+
+      const shiftLabels = { M: "TURNO: MAÑANA (M)", T: "TURNO: TARDE (T)", N: "TURNO: NOCHE (N)", L: "TURNO: LIBRE (L)" };
+
+      const weekdays = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+      const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+
+
+      document.getElementById("detailShiftBadge").textContent = shiftLabels[shift];
+
+      document.getElementById("detailShiftBadge").className = "text-[10px] font-extrabold px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30";
+
+
+
+      document.getElementById("detailQuotaTypeBadge").textContent = restricted ? "Cupo Restringido (20%)" : "Cupo Ordinario (40%)";
+
+      document.getElementById("detailQuotaTypeBadge").className = restricted
+
+        ? "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30"
+
+        : "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+
+
+      document.getElementById("detailDateTitle").textContent = `${weekdays[dateObj.getDay()]}, ${d} ${months[m - 1]} ${y}`;
+
+
+
+      const dayPerms = permissions.filter(p => p.date === iso);
+
+      const computableCount = dayPerms.filter(p => {
+
+        const u = UNIT_MEMBERS.find(member => member.id === p.userId);
+
+        return u && u.computable;
+
+      }).length;
+
+
+
+      const isFull = computableCount >= maxQuota;
+
+      const pct = Math.min(100, Math.round((computableCount / maxQuota) * 100));
+
+
+
+      document.getElementById("detailOccupancyText").textContent = `${computableCount} / ${maxQuota} plazas ocupadas`;
+
+      document.getElementById("detailOccupancyText").className = `font-extrabold ${isFull ? "text-rose-400" : "text-emerald-400"}`;
+
+      document.getElementById("detailOccupancyBar").style.width = `${pct}%`;
+
+      document.getElementById("detailOccupancyBar").className = `h-full transition-all ${isFull ? "bg-rose-500" : "bg-emerald-400"}`;
+
+      document.getElementById("detailStatusSubtext").textContent = isFull
+
+        ? "Cupo completo para agentes operativos en esta fecha."
+
+        : `Quedan ${maxQuota - computableCount} plaza(s) libre(s) para agentes.`;
+
+
+
+      document.getElementById("detailTotalCount").textContent = `${dayPerms.length} ANOTADOS`;
+
+
+
+      const listEl = document.getElementById("detailAgentsList");
+
+      if (dayPerms.length === 0) {
+
+        listEl.innerHTML = `<div class="text-xs text-slate-500 text-center py-4 bg-[#0b0f19] rounded-xl border border-slate-800">Ningún componente tiene permiso registrado este día.</div>`;
+
+      } else {
+
+        listEl.innerHTML = dayPerms.map(p => {
+
+          const member = UNIT_MEMBERS.find(u => u.id === p.userId) || { id: p.userId, name: `Agente ${p.userId}`, computable: true };
+
+          const isMine = p.userId === currentUser.id;
+
+          return `
+
+            <div class="flex items-center justify-between bg-[#0b0f19] border border-slate-800 rounded-xl p-2.5">
+
+              <div class="flex items-center gap-2.5 min-w-0">
+
+                <span class="px-2 py-1 rounded-lg bg-slate-800 text-xs font-extrabold text-white shrink-0">${member.id}</span>
+
+                <div class="min-w-0">
+
+                  <div class="text-xs font-bold text-white truncate">
+
+                    ${member.name} <span class="text-[10px] font-normal text-slate-400">(${p.requestedAt || "Sin fecha"})</span>
+
+                  </div>
+
+                  <div class="text-[10px] text-slate-400">${member.computable ? "Computa en cupo" : "No computa en cupo"}</div>
+
+                </div>
+
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-extrabold text-xs">${p.type}</span>
+
+                ${isMine ? `<button onclick="deleteFromDetail('${p.docId}', '${iso}')" class="text-rose-400 hover:text-rose-300 text-xs px-1.5 py-0.5 rounded bg-rose-500/10" title="Eliminar">🗑</button>` : ""}
+
+              </div>
+
+            </div>
+
+          `;
+
+        }).join("");
+
+      }
+
+
+
+      const quickBtn = document.getElementById("detailQuickRequestBtn");
+
+      const alreadyMine = dayPerms.some(p => p.userId === currentUser.id);
+
+      if (alreadyMine) {
+
+        quickBtn.textContent = "✓ Ya solicitado";
+
+        quickBtn.disabled = true;
+
+        quickBtn.className = "flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-400 font-semibold text-sm cursor-not-allowed";
+
+      } else {
+
+        quickBtn.textContent = "+ Pedir este día";
+
+        quickBtn.disabled = false;
+
+        quickBtn.className = "flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition";
+
+        quickBtn.onclick = () => { closeDayDetailModal(); openRequestModal(iso); };
+
+      }
+
+
+
+      document.getElementById("dayDetailModal").classList.remove("hidden");
+
+    };
+
+
+
+    window.deleteFromDetail = async (docId, iso) => {
+
+      await window.deletePermission(docId);
+
+      if (!db) openDayDetail(iso);
+
+      else closeDayDetailModal();
+
+    };
+
+
+
+    window.closeDayDetailModal = () => {
+
+      document.getElementById("dayDetailModal").classList.add("hidden");
+
+    };
+
+  </script>
+
+</body>
+
+</html>
